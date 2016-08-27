@@ -13,3 +13,9 @@ max_line_length = 119
 
 [Makefile]
 indent_style = tab
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[*.md]
+insert_final_newline = false
+trim_trailing_whitespace = false
