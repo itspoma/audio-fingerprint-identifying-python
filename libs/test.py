@@ -1,0 +1,2 @@
+def x():
+  print('TEST')
