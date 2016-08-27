@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from libs import test
+from libs import test_aaa
 import libs
 
 if __name__ == '__main__':
   libs.x()
-  test.x()
+  test_aaa.x()
