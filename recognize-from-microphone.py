@@ -26,7 +26,7 @@ song = None
 
 config = get_config()
 
-seconds = 5
+seconds = 6
 chunksize = 2**12
 channels = 2#int(config['channels']) # 1=mono, 2=stereo
 
@@ -72,42 +72,72 @@ result = set()
 Fs = fingerprint.DEFAULT_FS
 data = reader.get_recorded_data()
 channel_amount = len(data)
+matches = []
+
+def find_matches(samples, Fs=fingerprint.DEFAULT_FS):
+  hashes = fingerprint.fingerprint(samples, Fs=Fs)
+  return return_matches(hashes)
+
+# return_matches()
+def return_matches(hashes):
+  mapper = {}
+  for hash, offset in hashes:
+    mapper[hash.upper()] = offset
+  values = mapper.keys()
+
+  for split_values in grouper(values, 1000):
+    print('in grouper')
+    query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
+    query = query % ', '.join('?' * len(split_values));
+    # print('query', query)
+
+    x = db.executeAll(query, split_values)
+    print('query-x', len(x))
+
+    for hash, sid, offset in x:
+      # (sid, db_offset - song_sampled_offset)
+      yield (sid, offset - mapper[hash])
 
 for channeln, channel in enumerate(data):
   # TODO: Remove prints or change them into optional logging.
   print("Fingerprinting channel %d/%d" % (channeln + 1, channel_amount))
-  hashes = fingerprint.fingerprint(channel, Fs=Fs)
+  matches.extend(find_matches(channel))
   print("Finished channel %d/%d" % (channeln + 1, channel_amount))
-
-  result |= set(hashes)
+  # result |= set(hashes)
 # for hash, offset in hashes:
 #   print(str(hash.upper()) + " " + str(offset))
 
-# result |= set([("62DE23A0CC87079C3BB9",999)])
-# print('result', result)
-mapper = {}
-for hash, offset in result:
-  mapper[hash.upper()] = offset
-values = mapper.keys()
+# # result |= set([("62DE23A0CC87079C3BB9",999)])
+# # print('result', result)
+# mapper = {}
+# for hash, offset in result:
+#   mapper[hash.upper()] = offset
+# values = mapper.keys()
 
-print(len(values))
-matches = set()
+# print(len(values))
+# matches = []
+# # set()
 
-for split_values in grouper(values, 1000):
-  print('in grouper')
-  query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
-  query = query % ', '.join('?' * len(split_values));
-  # UNHEX
-  # print('query', query)
+# matches.extend((sid, offset - mapper[hash],))
 
-  x = db.executeAll(query, split_values)
-  print('query-x', len(x))
+# for split_values in grouper(values, 1000):
+#   print('in grouper')
+#   query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
+#   query = query % ', '.join('?' * len(split_values));
+#   # UNHEX
+#   # print('query', query)
 
-  for hash, sid, offset in x:
-    # (sid, db_offset - song_sampled_offset)
-    x = (sid, offset - mapper[hash])
-    # matches.extend(x)
-    matches |= set([x])
+#   x = db.executeAll(query, split_values)
+#   print('query-x', len(x))
+
+#   for hash, sid, offset in x:
+#     # (sid, db_offset - song_sampled_offset)
+#     # x = (sid, offset - mapper[hash])
+#     matches.extend((sid, offset - mapper[hash],))
+#     # matches |= set([x])
+
+print('matches', len(matches))
+# sys.exit(0)
 
 # print('end grouper', len(matches))
 # print('matches', matches)
