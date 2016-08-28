@@ -5,13 +5,16 @@ import sys
 from itertools import izip_longest
 
 class SqliteDatabase(Database):
+  TABLE_SONGS = 'songs'
+  TABLE_FINGERPRINTS = 'fingerprints'
+
   def __init__(self):
     self.connect()
 
   def connect(self):
     config = get_config()
 
-    self.conn = sqlite3.connect('db/fingerprints.db')
+    self.conn = sqlite3.connect(config['db.file'])
     self.cur = self.conn.cursor()
     print('sqlite - connection opened')
 
@@ -44,13 +47,18 @@ class SqliteDatabase(Database):
     conditions = ' AND '.join(conditions)
     query = "SELECT * FROM %s WHERE %s" % (table, conditions)
 
-    self.cur.execute(query, values)
+    return {
+      "query": query,
+      "values": values
+    }
 
   def findOne(self, table, params):
-    return self.executeOne(self.buildSelectQuery(table, params))
+    select = self.buildSelectQuery(table, params)
+    return self.executeOne(select['query'], select['values'])
 
   def findAll(self, table, params):
-    return self.executeAll(self.buildSelectQuery(table, params))
+    select = self.buildSelectQuery(table, params)
+    return self.executeAll(select['query'], select['values'])
 
   def insert(self, table, params):
     keys = ', '.join(params.keys())

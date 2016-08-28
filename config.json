@@ -3,6 +3,7 @@
 
   "db.dsn": null,
   "db.database": null,
+  "db.file": "db/fingerprints.db",
 
   "channels": "2",
   "mic.visualise_console": true,

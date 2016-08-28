@@ -36,13 +36,10 @@ if __name__ == '__main__':
       print(" finished fingerprinting, got %d unique hashes" % (len(hashes)))
 
       values = []
-
       for hash, offset in hashes:
         values.append((song_id, hash, offset))
 
       print(" storing %d hashes in db" % (len(values)))
-      db.insertMany("fingerprintsx",
-        ['song_fk', 'hash', 'offset'], values
-      )
+      db.store_fingerprints(values)
 
   print('end')

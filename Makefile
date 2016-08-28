@@ -4,8 +4,9 @@ install:
 clean:
 	@find . -name \*.pyc -delete
 
-parse-songs: clean
+fingerprint-songs: clean
 	@python collect-fingerprints-of-songs.py
+	@python get-database-stat.py
 
 recognize-listen: clean
 	@python recognize-from-microphone.py
