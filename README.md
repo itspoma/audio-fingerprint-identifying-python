@@ -1,9 +1,11 @@
-#  How to set up 
+# Fingerprint audio files & identify what's playing
 
-1. run `$ make clean reset` to clean & init database struct
-1. copy `.mp3` audio files into `mp3/` directory
-1. run `$ make fingerprint-songs` to analyze audio files
-1. turn on any of audio files from `mp3/` directory, and run `$ make recognize-listen`
+## How to set up 
+
+1. Run `$ make clean reset` to clean & init database struct
+1. Copy `.mp3` audio files into `mp3/` directory
+1. Run `$ make fingerprint-songs` to analyze audio files
+1. Play any of audio files from `mp3/` directory, and run (parallely) `$ make recognize-listen`
 
 ## Thanks to
 - [How does Shazam work](http://coding-geek.com/how-shazam-works/)
