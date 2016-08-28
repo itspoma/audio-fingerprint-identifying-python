@@ -1,6 +1,6 @@
-import matplotlib
-matplotlib.use('TkAgg')
+#!/usr/bin/python
 
+import libs
 import sys
 
 # import argparse
@@ -20,17 +20,11 @@ import libs.fingerprint as fingerprint
 from libs.config import get_config
 from libs.db_mongo import MongoDatabase
 
-config = get_config()
-print(config)
-# db = MongoDatabase()
-# x = db.insert("test", {"aaaaaa":"cccc"})
-# print(x)
-
-sys.exit(0)
-
 song = None
 
-seconds = 1
+config = get_config()
+
+seconds = 5
 chunksize = 2**12
 channels = int(config['channels']) # 1=mono, 2=stereo
 
@@ -94,3 +88,8 @@ for channeln, channel in enumerate(data):
 for hash, offset in result:
   print(str(hash.upper()) + " " + str(offset))
 
+# db = MongoDatabase()
+# x = db.insert("test", {"aaaaaa":"cccc"})
+# print(x)
+
+# if __name__ == '__main__':

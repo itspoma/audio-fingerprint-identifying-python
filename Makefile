@@ -4,8 +4,8 @@ install:
 clean:
 	@find . -name \*.pyc -delete
 
-parse: clean
-	@python parse-songs-and-collect-hashes.py
+parse-songs: clean
+	@python collect-fingerprints-of-songs.py
 
 recognize-listen: clean
 	@python recognize-from-microphone.py

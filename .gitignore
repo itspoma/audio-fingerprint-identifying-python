@@ -11,3 +11,5 @@ pip-delete-this-directory.txt
 *.mp3
 
 config-development.json
+
+db/*.db
