@@ -15,6 +15,11 @@ class Database(object):
       "filehash": filehash
     })
 
+  def get_song_by_id(self, id):
+    return self.findOne(self.TABLE_SONGS, {
+      "id": id
+    })
+
   def add_song(self, filename, filehash):
     song = self.get_song_by_filehash(filehash)
 

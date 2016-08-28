@@ -12,6 +12,8 @@ from itertools import izip_longest
 from libs.db_sqlite import SqliteDatabase
 # from libs.db_mongo import MongoDatabase
 
+# if __name__ == '__main__':
+
 db = SqliteDatabase()
 
 def grouper(iterable, n, fillvalue=None):
@@ -65,7 +67,7 @@ print('recording has been stopped..')
 # reader.save_recorded('test.wav')
 
 # DEFAULT_FS = 44100
-# result = set()
+result = set()
 # channels
 Fs = fingerprint.DEFAULT_FS
 data = reader.get_recorded_data()
@@ -77,39 +79,79 @@ for channeln, channel in enumerate(data):
   hashes = fingerprint.fingerprint(channel, Fs=Fs)
   print("Finished channel %d/%d" % (channeln + 1, channel_amount))
 
-  # for hash, offset in hashes:
-  #   print(str(hash.upper()) + " " + str(offset))
+  result |= set(hashes)
+# for hash, offset in hashes:
+#   print(str(hash.upper()) + " " + str(offset))
 
-  mapper = {}
-  for hash, offset in hashes:
-    mapper[hash.upper()] = offset
-  values = mapper.keys()
+# result |= set([("62DE23A0CC87079C3BB9",999)])
+# print('result', result)
+mapper = {}
+for hash, offset in result:
+  mapper[hash.upper()] = offset
+values = mapper.keys()
 
-  # print(len(values))
-  matches = []
+print(len(values))
+matches = set()
 
-  for split_values in grouper(values, 1000):
-    print('in grouper')
-    query = "SELECT hash, song_fk, offset FROM fingerprints WHERE hash IN (%s);"
-    query = query % ', '.join('?' * len(split_values));
-    # UNHEX
-    print('query', query)
+for split_values in grouper(values, 1000):
+  print('in grouper')
+  query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
+  query = query % ', '.join('?' * len(split_values));
+  # UNHEX
+  # print('query', query)
 
-    x = db.executeAll(query, split_values)
-    print('query-x', x)
+  x = db.executeAll(query, split_values)
+  print('query-x', len(x))
 
-    # for hash, sid, offset in db.cur:
-      # (sid, db_offset - song_sampled_offset)
-      # matches.extend((sid, offset - mapper[hash]))
+  for hash, sid, offset in x:
+    # (sid, db_offset - song_sampled_offset)
+    x = (sid, offset - mapper[hash])
+    # matches.extend(x)
+    matches |= set([x])
 
-  print('end grouper', len(matches))
+# print('end grouper', len(matches))
+# print('matches', matches)
 
-  # result |= set(hashes)
+def align_matches(matches):
+  diff_counter = {}
+  largest = 0
+  largest_count = 0
+  song_id = -1
+  for tup in matches:
+    sid, diff = tup
+    if diff not in diff_counter:
+      diff_counter[diff] = {}
+    if sid not in diff_counter[diff]:
+      diff_counter[diff][sid] = 0
+    diff_counter[diff][sid] += 1
 
+    if diff_counter[diff][sid] > largest_count:
+      largest = diff
+      largest_count = diff_counter[diff][sid]
+      song_id = sid
 
-# db = MongoDatabase()
-# x = db.insert("test", {"aaaaaa":"cccc"})
-# print(x)
+  # return song_id
 
-# if __name__ == '__main__':
+  # extract idenfication
+  # song = self.db.get_song_by_id(song_id)
 
+  songM = db.get_song_by_id(song_id)
+
+  # return match info
+  nseconds = round(float(largest) / fingerprint.DEFAULT_FS *
+                   fingerprint.DEFAULT_WINDOW_SIZE *
+                   fingerprint.DEFAULT_OVERLAP_RATIO, 5)
+  return {
+      "SONG_ID" : song_id,
+      "SONG_NAME" : songM[1],
+      "CONFIDENCE" : largest_count,
+      "OFFSET" : int(largest),
+      "OFFSET_SECS" : nseconds,
+      # Database.FIELD_FILE_SHA1 : song.get(Database.FIELD_FILE_SHA1, None),
+  }
+
+x = align_matches(matches)
+print(x)
+# y = db.get_song_by_id(x)
+# print(y)
+print(x['SONG_NAME'])
