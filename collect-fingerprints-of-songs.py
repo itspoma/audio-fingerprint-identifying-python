@@ -16,9 +16,14 @@ if __name__ == '__main__':
       reader = FileReader(path + filename)
       audio = reader.parse_audio()
 
+      song = db.get_song_by_filehash(audio['file_hash'])
       song_id = db.add_song(filename, audio['file_hash'])
 
       print("%s - id=%s channels=%d" % (filename, song_id, len(audio['channels'])))
+
+      if song:
+        print(" already exists, skip")
+        continue
 
       hashes = set()
       channel_amount = len(audio['channels'])

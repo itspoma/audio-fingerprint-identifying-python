@@ -10,10 +10,13 @@ class Database(object):
   def connect(self): pass
   def insert(self, table, params): pass
 
-  def add_song(self, filename, filehash):
-    song = self.findOne(self.TABLE_SONGS, {
+  def get_song_by_filehash(self, filehash):
+    return self.findOne(self.TABLE_SONGS, {
       "filehash": filehash
     })
+
+  def add_song(self, filename, filehash):
+    song = self.get_song_by_filehash(filehash)
 
     if not song:
       song_id = self.insert(self.TABLE_SONGS, {

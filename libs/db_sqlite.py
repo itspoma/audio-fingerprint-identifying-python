@@ -15,6 +15,8 @@ class SqliteDatabase(Database):
     config = get_config()
 
     self.conn = sqlite3.connect(config['db.file'])
+    self.conn.text_factory = str
+
     self.cur = self.conn.cursor()
     print('sqlite - connection opened')
 
