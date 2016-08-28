@@ -4,12 +4,13 @@ import wave
 from reader import BaseReader
 
 class MicrophoneReader(BaseReader):
-  default_chunksize = 1024#8192
+  default_chunksize = 8192
   default_format = pyaudio.paInt16
   default_channels = 2
   default_rate = 44100
   default_seconds = 0
 
+  # set default
   def __init__(self, a):
     super(MicrophoneReader, self).__init__(a)
     self.audio = pyaudio.PyAudio()
@@ -62,7 +63,7 @@ class MicrophoneReader(BaseReader):
     self.stream = None
     self.recorded = True
 
-  def get_recorded_date(self):
+  def get_recorded_data(self):
     return self.data
 
   def save_recorded(self, output_filename):

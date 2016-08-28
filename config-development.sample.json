@@ -1,0 +1,8 @@
+{
+  "env": "development",
+
+  // you can use any of cloud-based or local mongo servers
+  // like https://mlab.com/
+  "db.dsn": "mongodb://user:password@cloud-domain:port/",
+  "db.database": "database-name-here"
+}

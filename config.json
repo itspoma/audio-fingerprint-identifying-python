@@ -1,0 +1,10 @@
+{
+  "env": "default",
+
+  "db.dsn": null,
+  "db.database": null,
+
+  "channels": "2",
+  "mic.visualise_console": true,
+  "mic.visualise_plot": false
+}
