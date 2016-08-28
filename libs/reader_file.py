@@ -10,14 +10,6 @@ class FileReader(BaseReader):
     # super(FileReader, self).__init__(a)
     self.filename = filename
 
-  def parse_name(self):
-    songname, extension = os.path.splitext(os.path.basename(self.filename))
-
-    return {
-      "songname": songname,
-      "extension": extension
-    }
-
   """
   Reads any file supported by pydub (ffmpeg) and returns the data contained
   within. If file reading fails due to input being a 24-bit wav file,
@@ -33,6 +25,8 @@ class FileReader(BaseReader):
   def parse_audio(self):
     limit = None
     limit = 10
+
+    songname, extension = os.path.splitext(os.path.basename(self.filename))
 
     try:
       audiofile = AudioSegment.from_file(self.filename)
@@ -63,6 +57,8 @@ class FileReader(BaseReader):
         #     channels.append(chn)
 
     return {
+      "songname": songname,
+      "extension": extension,
       "channels": channels,
       "Fs": audiofile.frame_rate,
       "file_hash": self.parse_file_hash()
