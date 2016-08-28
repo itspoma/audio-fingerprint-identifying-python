@@ -16,13 +16,22 @@ class SqliteDatabase(Database):
     print('sqlite - connection opened')
 
   def __del__(self):
+    self.conn.commit()
     self.conn.close()
     print('sqlite - connection has been closed')
 
   def query(self, query, values = []):
     self.cur.execute(query, values)
 
-  def select(self, table, params):
+  def executeOne(self, query, values = []):
+    self.cur.execute(query, values)
+    return self.cur.fetchone()
+
+  def executeAll(self, query, values = []):
+    self.cur.execute(query, values)
+    return self.cur.fetchall()
+
+  def buildSelectQuery(self, table, params):
     conditions = []
     values = []
 
@@ -38,12 +47,10 @@ class SqliteDatabase(Database):
     self.cur.execute(query, values)
 
   def findOne(self, table, params):
-    self.select(table, params)
-    return self.cur.fetchone()
+    return self.executeOne(self.buildSelectQuery(table, params))
 
   def findAll(self, table, params):
-    self.select(table, params)
-    return self.cur.fetchall()
+    return self.executeAll(self.buildSelectQuery(table, params))
 
   def insert(self, table, params):
     keys = ', '.join(params.keys())
