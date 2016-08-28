@@ -3,22 +3,22 @@
 import libs
 import sys
 
-# import argparse
-# from argparse import RawTextHelpFormatter
-
-# import numpy
-# import scipy
-# import struct
-# import pyaudio
-# import threading
-# import pylab
-
 from libs.reader_microphone import MicrophoneReader
 from libs.visualiser_console import VisualiserConsole as visual_peak
 from libs.visualiser_plot import VisualiserPlot as visual_plot
 import libs.fingerprint as fingerprint
 from libs.config import get_config
-from libs.db_mongo import MongoDatabase
+from itertools import izip_longest
+from libs.db_sqlite import SqliteDatabase
+# from libs.db_mongo import MongoDatabase
+
+db = SqliteDatabase()
+
+def grouper(iterable, n, fillvalue=None):
+  args = [iter(iterable)] * n
+  return (filter(None, values) for values
+          in izip_longest(fillvalue=fillvalue, *args))
+
 
 song = None
 
@@ -26,7 +26,7 @@ config = get_config()
 
 seconds = 5
 chunksize = 2**12
-channels = int(config['channels']) # 1=mono, 2=stereo
+channels = 2#int(config['channels']) # 1=mono, 2=stereo
 
 record_forever = False
 visualise_console = bool(config['mic.visualise_console'])
@@ -65,31 +65,51 @@ print('recording has been stopped..')
 # reader.save_recorded('test.wav')
 
 # DEFAULT_FS = 44100
-result = set()
+# result = set()
 # channels
 Fs = fingerprint.DEFAULT_FS
 data = reader.get_recorded_data()
 channel_amount = len(data)
-filename = "mic"
-# for d in data:
+
 for channeln, channel in enumerate(data):
   # TODO: Remove prints or change them into optional logging.
-  print("Fingerprinting channel %d/%d for %s" % (channeln + 1,
-                                                       channel_amount,
-                                                       filename))
-  # samples = d
+  print("Fingerprinting channel %d/%d" % (channeln + 1, channel_amount))
   hashes = fingerprint.fingerprint(channel, Fs=Fs)
-  print("Finished channel %d/%d for %s" % (channeln + 1, channel_amount,
-                                                 filename))
-  result |= set(hashes)
+  print("Finished channel %d/%d" % (channeln + 1, channel_amount))
 
-  # matches.extend(self.dejavu.find_matches(d, Fs=self.Fs))
+  # for hash, offset in hashes:
+  #   print(str(hash.upper()) + " " + str(offset))
 
-for hash, offset in result:
-  print(str(hash.upper()) + " " + str(offset))
+  mapper = {}
+  for hash, offset in hashes:
+    mapper[hash.upper()] = offset
+  values = mapper.keys()
+
+  # print(len(values))
+  matches = []
+
+  for split_values in grouper(values, 1000):
+    print('in grouper')
+    query = "SELECT hash, song_fk, offset FROM fingerprints WHERE hash IN (%s);"
+    query = query % ', '.join('?' * len(split_values));
+    # UNHEX
+    print('query', query)
+
+    x = db.executeAll(query, split_values)
+    print('query-x', x)
+
+    # for hash, sid, offset in db.cur:
+      # (sid, db_offset - song_sampled_offset)
+      # matches.extend((sid, offset - mapper[hash]))
+
+  print('end grouper', len(matches))
+
+  # result |= set(hashes)
+
 
 # db = MongoDatabase()
 # x = db.insert("test", {"aaaaaa":"cccc"})
 # print(x)
 
 # if __name__ == '__main__':
+
