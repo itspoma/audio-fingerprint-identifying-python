@@ -1,5 +1,5 @@
 # Fingerprint audio files & identify what's playing
-made for 
+made for [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd-2016/about)
 
 ![](http://new.tinygrab.com/7020c0e8b010392da4053fa90ab8e0c8419bded864.png)
 
