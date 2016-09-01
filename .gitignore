@@ -13,3 +13,4 @@ pip-delete-this-directory.txt
 config-development.json
 
 db/*.db
+db/*.db-journal
