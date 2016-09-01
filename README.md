@@ -5,7 +5,7 @@
 1. Run `$ make clean reset` to clean & init database struct
 1. Copy `.mp3` audio files into `mp3/` directory
 1. Run `$ make fingerprint-songs` to analyze audio files
-1. Play any of audio files from `mp3/` directory, and run (parallely) `$ make recognize-listen`
+1. Play any of audio files from `mp3/` directory, and run (parallely) `$ make recognize-listen seconds=5`
 
 ## x
 ```

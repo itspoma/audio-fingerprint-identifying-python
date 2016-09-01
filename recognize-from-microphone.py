@@ -1,187 +1,196 @@
 #!/usr/bin/python
-
-import libs
+import os
 import sys
+import libs
+import libs.fingerprint as fingerprint
+import argparse
 
+from argparse import RawTextHelpFormatter
+from itertools import izip_longest
+from termcolor import colored
+from libs.config import get_config
 from libs.reader_microphone import MicrophoneReader
 from libs.visualiser_console import VisualiserConsole as visual_peak
 from libs.visualiser_plot import VisualiserPlot as visual_plot
-import libs.fingerprint as fingerprint
-from libs.config import get_config
-from itertools import izip_longest
 from libs.db_sqlite import SqliteDatabase
 # from libs.db_mongo import MongoDatabase
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+  config = get_config()
 
-db = SqliteDatabase()
+  db = SqliteDatabase()
 
-def grouper(iterable, n, fillvalue=None):
-  args = [iter(iterable)] * n
-  return (filter(None, values) for values
-          in izip_longest(fillvalue=fillvalue, *args))
+  parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
+  parser.add_argument('-s', '--seconds', nargs='?')
+  args = parser.parse_args()
+
+  if not args.seconds:
+    parser.print_help()
+    sys.exit(0)
+
+  seconds = int(args.seconds)
+
+  chunksize = 2**12  # 4096
+  channels = 2#int(config['channels']) # 1=mono, 2=stereo
+
+  record_forever = False
+  visualise_console = bool(config['mic.visualise_console'])
+  visualise_plot = bool(config['mic.visualise_plot'])
+
+  reader = MicrophoneReader(None)
+
+  reader.start_recording(seconds=seconds,
+    chunksize=chunksize,
+    channels=channels)
+
+  msg = ' * started recording..'
+  print colored(msg, attrs=['dark'])
+
+  while True:
+    bufferSize = int(reader.rate / reader.chunksize * seconds)
+
+    for i in range(0, bufferSize):
+      nums = reader.process_recording()
+
+      if visualise_console:
+        msg = colored('   %05d', attrs=['dark']) + colored(' %s', 'green')
+        print msg  % visual_peak.calc(nums)
+      else:
+        msg = '   processing %d of %d..' % (i, bufferSize)
+        print colored(msg, attrs=['dark'])
+
+    if not record_forever: break
+
+  if visualise_plot:
+    data = reader.get_recorded_data()[0]
+    visual_plot.show(data)
+
+  reader.stop_recording()
+
+  msg = ' * recording has been stopped'
+  print colored(msg, attrs=['dark'])
 
 
-song = None
 
-config = get_config()
+  def grouper(iterable, n, fillvalue=None):
+    args = [iter(iterable)] * n
+    return (filter(None, values) for values
+            in izip_longest(fillvalue=fillvalue, *args))
 
-seconds = 6
-chunksize = 2**12
-channels = 2#int(config['channels']) # 1=mono, 2=stereo
+  data = reader.get_recorded_data()
 
-record_forever = False
-visualise_console = bool(config['mic.visualise_console'])
-visualise_plot = bool(config['mic.visualise_plot'])
+  msg = ' * recorded %d samples'
+  print colored(msg, attrs=['dark']) % len(data[0])
 
-reader = MicrophoneReader(None)
+  # reader.save_recorded('test.wav')
 
-reader.start_recording(seconds=seconds,
-  chunksize=chunksize,
-  channels=channels)
-print('started recording..')
 
-while True:
-  bufferSize = int(reader.rate / reader.chunksize * seconds)
+  Fs = fingerprint.DEFAULT_FS
+  channel_amount = len(data)
 
-  for i in range(0, bufferSize):
-    nums = reader.process_recording()
+  result = set()
+  matches = []
 
-    if visualise_console:
-      print("%05d %s" % visual_peak.calc(nums))
-    else:
-      print('processing %d of %d..' % (i, bufferSize))
+  def find_matches(samples, Fs=fingerprint.DEFAULT_FS):
+    hashes = fingerprint.fingerprint(samples, Fs=Fs)
+    return return_matches(hashes)
 
-  if not record_forever: break
+  def return_matches(hashes):
+    mapper = {}
+    for hash, offset in hashes:
+      mapper[hash.upper()] = offset
+    values = mapper.keys()
 
-if visualise_plot:
-  data = reader.get_recorded_data()[0]
-  visual_plot.show(data)
+    for split_values in grouper(values, 1000):
+      # @todo move to db related files
+      query = """
+        SELECT upper(hash), song_fk, offset
+        FROM fingerprints
+        WHERE upper(hash) IN (%s)
+      """
+      query = query % ', '.join('?' * len(split_values))
 
-reader.stop_recording()
-print('recording has been stopped..')
+      x = db.executeAll(query, split_values)
+      matches_found = len(x)
 
-# print('recorded %d ..' % (reader.get_recorded_time()))
-# print('recorded %d ..' % (len(reader.data[0])))
+      if matches_found > 0:
+        msg = '   ** found %d hash matches'
+        print colored(msg, 'green') % matches_found
+      else:
+        msg = '   ** not matches found'
+        print colored(msg, 'red')
 
-# reader.save_recorded('test.wav')
+      for hash, sid, offset in x:
+        # (sid, db_offset - song_sampled_offset)
+        yield (sid, offset - mapper[hash])
 
-# DEFAULT_FS = 44100
-result = set()
-# channels
-Fs = fingerprint.DEFAULT_FS
-data = reader.get_recorded_data()
-channel_amount = len(data)
-matches = []
+  for channeln, channel in enumerate(data):
+    # TODO: Remove prints or change them into optional logging.
+    msg = '   fingerprinting channel %d/%d'
+    print colored(msg, attrs=['dark']) % (channeln+1, channel_amount)
 
-def find_matches(samples, Fs=fingerprint.DEFAULT_FS):
-  hashes = fingerprint.fingerprint(samples, Fs=Fs)
-  return return_matches(hashes)
+    matches.extend(find_matches(channel))
 
-# return_matches()
-def return_matches(hashes):
-  mapper = {}
-  for hash, offset in hashes:
-    mapper[hash.upper()] = offset
-  values = mapper.keys()
+    msg = '   finished channel %d/%d, got %d hashes'
+    print colored(msg, attrs=['dark']) % (
+      channeln+1, channel_amount, len(matches)
+    )
 
-  for split_values in grouper(values, 1000):
-    print('in grouper')
-    query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
-    query = query % ', '.join('?' * len(split_values));
-    # print('query', query)
+  def align_matches(matches):
+    diff_counter = {}
+    largest = 0
+    largest_count = 0
+    song_id = -1
 
-    x = db.executeAll(query, split_values)
-    print('query-x', len(x))
+    for tup in matches:
+      sid, diff = tup
 
-    for hash, sid, offset in x:
-      # (sid, db_offset - song_sampled_offset)
-      yield (sid, offset - mapper[hash])
+      if diff not in diff_counter:
+        diff_counter[diff] = {}
 
-for channeln, channel in enumerate(data):
-  # TODO: Remove prints or change them into optional logging.
-  print("Fingerprinting channel %d/%d" % (channeln + 1, channel_amount))
-  matches.extend(find_matches(channel))
-  print("Finished channel %d/%d" % (channeln + 1, channel_amount))
-  # result |= set(hashes)
-# for hash, offset in hashes:
-#   print(str(hash.upper()) + " " + str(offset))
+      if sid not in diff_counter[diff]:
+        diff_counter[diff][sid] = 0
 
-# # result |= set([("62DE23A0CC87079C3BB9",999)])
-# # print('result', result)
-# mapper = {}
-# for hash, offset in result:
-#   mapper[hash.upper()] = offset
-# values = mapper.keys()
+      diff_counter[diff][sid] += 1
 
-# print(len(values))
-# matches = []
-# # set()
+      if diff_counter[diff][sid] > largest_count:
+        largest = diff
+        largest_count = diff_counter[diff][sid]
+        song_id = sid
 
-# matches.extend((sid, offset - mapper[hash],))
+    songM = db.get_song_by_id(song_id)
 
-# for split_values in grouper(values, 1000):
-#   print('in grouper')
-#   query = "SELECT upper(hash), song_fk, offset FROM fingerprints WHERE upper(hash) IN (%s);"
-#   query = query % ', '.join('?' * len(split_values));
-#   # UNHEX
-#   # print('query', query)
+    nseconds = round(float(largest) / fingerprint.DEFAULT_FS *
+                     fingerprint.DEFAULT_WINDOW_SIZE *
+                     fingerprint.DEFAULT_OVERLAP_RATIO, 5)
 
-#   x = db.executeAll(query, split_values)
-#   print('query-x', len(x))
+    return {
+        "SONG_ID" : song_id,
+        "SONG_NAME" : songM[1],
+        "CONFIDENCE" : largest_count,
+        "OFFSET" : int(largest),
+        "OFFSET_SECS" : nseconds
+    }
 
-#   for hash, sid, offset in x:
-#     # (sid, db_offset - song_sampled_offset)
-#     # x = (sid, offset - mapper[hash])
-#     matches.extend((sid, offset - mapper[hash],))
-#     # matches |= set([x])
+  total_matches_found = len(matches)
 
-print('matches', len(matches))
-# sys.exit(0)
+  print ''
 
-# print('end grouper', len(matches))
-# print('matches', matches)
+  if total_matches_found > 0:
+    msg = ' ** totally found %d hash matches'
+    print colored(msg, 'green') % total_matches_found
 
-def align_matches(matches):
-  diff_counter = {}
-  largest = 0
-  largest_count = 0
-  song_id = -1
-  for tup in matches:
-    sid, diff = tup
-    if diff not in diff_counter:
-      diff_counter[diff] = {}
-    if sid not in diff_counter[diff]:
-      diff_counter[diff][sid] = 0
-    diff_counter[diff][sid] += 1
+    song = align_matches(matches)
 
-    if diff_counter[diff][sid] > largest_count:
-      largest = diff
-      largest_count = diff_counter[diff][sid]
-      song_id = sid
+    msg = ' => song: %s (id=%d)\n'
+    msg += '    offset: %d (%d secs)\n'
+    msg += '    confidence: %d'
 
-  # return song_id
-
-  # extract idenfication
-  # song = self.db.get_song_by_id(song_id)
-
-  songM = db.get_song_by_id(song_id)
-
-  # return match info
-  nseconds = round(float(largest) / fingerprint.DEFAULT_FS *
-                   fingerprint.DEFAULT_WINDOW_SIZE *
-                   fingerprint.DEFAULT_OVERLAP_RATIO, 5)
-  return {
-      "SONG_ID" : song_id,
-      "SONG_NAME" : songM[1],
-      "CONFIDENCE" : largest_count,
-      "OFFSET" : int(largest),
-      "OFFSET_SECS" : nseconds,
-      # Database.FIELD_FILE_SHA1 : song.get(Database.FIELD_FILE_SHA1, None),
-  }
-
-x = align_matches(matches)
-print(x)
-# y = db.get_song_by_id(x)
-# print(y)
-print(x['SONG_NAME'])
+    print colored(msg, 'green') % (
+      song['SONG_NAME'], song['SONG_ID'],
+      song['OFFSET'], song['OFFSET_SECS'],
+      song['CONFIDENCE']
+    )
+  else:
+    msg = ' ** not matches found at all'
+    print colored(msg, 'red')
