@@ -33,6 +33,9 @@ class Database(object):
 
     return song_id
 
+  def get_song_hashes_count(self, song_id):
+    pass
+
   def store_fingerprints(self, values):
     self.insertMany(self.TABLE_FINGERPRINTS,
       ['song_fk', 'hash', 'offset'], values

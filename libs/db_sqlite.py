@@ -86,3 +86,8 @@ class SqliteDatabase(Database):
       self.cur.executemany(query, split_values)
 
     self.conn.commit()
+
+  def get_song_hashes_count(self, song_id):
+    query = 'SELECT count(*) FROM %s WHERE song_fk = %d' % (self.TABLE_FINGERPRINTS, song_id)
+    rows = self.executeOne(query)
+    return int(rows[0])

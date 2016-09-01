@@ -3,9 +3,11 @@
 
   "db.dsn": null,
   "db.database": null,
-  "db.file": "db/fingerprints.db",
+  "db.file": "db/fingerprints2.db",
 
   "channels": "2",
   "mic.visualise_console": true,
-  "mic.visualise_plot": false
+  "mic.visualise_plot": false,
+
+  "fingerprint.show_plots": false
 }
