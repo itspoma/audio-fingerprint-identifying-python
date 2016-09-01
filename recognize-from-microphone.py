@@ -114,11 +114,18 @@ if __name__ == '__main__':
       matches_found = len(x)
 
       if matches_found > 0:
-        msg = '   ** found %d hash matches'
-        print colored(msg, 'green') % matches_found
+        msg = '   ** found %d hash matches (step %d/%d)'
+        print colored(msg, 'green') % (
+          matches_found,
+          len(split_values),
+          len(values)
+        )
       else:
-        msg = '   ** not matches found'
-        print colored(msg, 'red')
+        msg = '   ** not matches found (step %d/%d)'
+        print colored(msg, 'red') % (
+          len(split_values),
+          len(values)
+        )
 
       for hash, sid, offset in x:
         # (sid, db_offset - song_sampled_offset)
