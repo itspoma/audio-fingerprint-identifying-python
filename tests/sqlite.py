@@ -1,8 +1,13 @@
-import sqlite3
-conn = sqlite3.connect('db/fingerprints.db')
-c = conn.cursor()
+#!/usr/bin/python
+import sys, os
+sys.path.append(os.path.join(sys.path[0], '..'))
 
-c.execute("INSERT INTO fingerprints (song_fk, hash) VALUES (11,'asd')")
+from libs.db_sqlite import SqliteDatabase
 
-conn.commit()
-conn.close()
+if __name__ == '__main__':
+  db = SqliteDatabase()
+
+  row = db.executeOne("SELECT 2+3 as x;")
+
+  assert row[0] == 5, "failed simple sql execution"
+  print('ok')

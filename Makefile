@@ -1,8 +1,16 @@
+.PHONY: tests
+
 install:
 	@echo soon
 
 clean:
 	@find . -name \*.pyc -delete
+
+tests:
+	@python tests/*.py
+
+stat:
+	@python get-database-stat.py
 
 reset:
 	@python reset-database.py
