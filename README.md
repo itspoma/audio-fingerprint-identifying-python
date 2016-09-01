@@ -15,6 +15,7 @@ made for [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd
 
 ## How to
 - To remove a specific song & related hash from db
+
   ```bash 
   $ python sql-execute.py -q "DELETE FROM songs WHERE id = 6;"
   $ python sql-execute.py -q "DELETE FROM fingerprints WHERE song_fk = 6;"
