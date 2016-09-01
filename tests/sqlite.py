@@ -10,4 +10,4 @@ if __name__ == '__main__':
   row = db.executeOne("SELECT 2+3 as x;")
 
   assert row[0] == 5, "failed simple sql execution"
-  print('ok')
+  print(' * ok')
