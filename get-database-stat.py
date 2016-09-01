@@ -17,6 +17,8 @@ def printSummary():
   )
   print msg % row
 
+  return row[0] # total
+
 # get songs \w details
 def printSongs():
   rows = db.executeAll("""
@@ -76,18 +78,22 @@ def printColissions():
   """)
 
   msg = ' * colissions: %s' % colored('%d hash(es)', 'red')
-  print msg % rows[0]
+  val = 0
+  if rows[0][0] is not None:
+    val = rows[0]
+
+  print msg % val
 
 if __name__ == '__main__':
   db = SqliteDatabase()
   print ''
 
-  printSummary()
+  x = printSummary()
   printSongs()
-  print ''
+  if x: print ''
 
   printDuplicates()
-  print ''
+  if x: print ''
 
   printColissions()
 
