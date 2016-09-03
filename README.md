@@ -1,6 +1,8 @@
 # Fingerprint audio files & identify what's playing
 made for [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd-2016/about)
 
+Presentation - [http://www.slideshare.net/rodomansky/ok-shazam-la-lalalaa](http://www.slideshare.net/rodomansky/ok-shazam-la-lalalaa)
+
 ![](http://new.tinygrab.com/7020c0e8b010392da4053fa90ab8e0c8419bded864.png)
 
 ## How to set up 
