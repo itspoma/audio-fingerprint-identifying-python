@@ -1,7 +1,7 @@
 # Fingerprint audio files & identify what's playing
-made for [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd-2016/about)
 
-**Presentation** - [http://www.slideshare.net/rodomansky/ok-shazam-la-lalalaa](http://www.slideshare.net/rodomansky/ok-shazam-la-lalalaa)
+- conference [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd-2016/about)
+- slides are on [slideshare.net/rodomansky/ok-shazam-la-lalalaa](http://www.slideshare.net/rodomansky/ok-shazam-la-lalalaa)
 
 ![](http://new.tinygrab.com/7020c0e8b010392da4053fa90ab8e0c8419bded864.png)
 
@@ -18,13 +18,14 @@ made for [PaceMaker: BackEnd-2016 conference](http://www.pacemaker.in.ua/BackEnd
 ## How to
 - To remove a specific song & related hash from db
 
-  ```bash 
+  ```bash
   $ python sql-execute.py -q "DELETE FROM songs WHERE id = 6;"
   $ python sql-execute.py -q "DELETE FROM fingerprints WHERE song_fk = 6;"
   ```
 
 ## Thanks to
 - [How does Shazam work](http://coding-geek.com/how-shazam-works/)
+- [Audio fingerprinting and recognition in Python](https://github.com/worldveil/dejavu) - thanks for fingerprinting login via pynum
 - [Audio Fingerprinting with Python and Numpy](http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/)
 - [Shazam It! Music Recognition Algorithms, Fingerprinting, and Processing](https://www.toptal.com/algorithms/shazam-it-music-processing-fingerprinting-and-recognition)
 - [Creating Shazam in Java](http://royvanrijn.com/blog/2010/06/creating-shazam-in-java/)
