@@ -3,4 +3,5 @@ termcolor
 pyaudio
 wave
 pydub
+scipy
 matplotlib==2.0.2
