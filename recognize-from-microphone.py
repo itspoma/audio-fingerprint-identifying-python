@@ -6,7 +6,7 @@ import libs.fingerprint as fingerprint
 import argparse
 
 from argparse import RawTextHelpFormatter
-from itertools import izip_longest
+from itertools import zip_longest
 from termcolor import colored
 from libs.config import get_config
 from libs.reader_microphone import MicrophoneReader
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     channels=channels)
 
   msg = ' * started recording..'
-  print colored(msg, attrs=['dark'])
+  print(colored(msg, attrs=['dark']))
 
   while True:
     bufferSize = int(reader.rate / reader.chunksize * seconds)
@@ -54,10 +54,10 @@ if __name__ == '__main__':
 
       if visualise_console:
         msg = colored('   %05d', attrs=['dark']) + colored(' %s', 'green')
-        print msg  % visual_peak.calc(nums)
+        print(msg  % visual_peak.calc(nums))
       else:
         msg = '   processing %d of %d..' % (i, bufferSize)
-        print colored(msg, attrs=['dark'])
+        print(colored(msg, attrs=['dark']))
 
     if not record_forever: break
 
@@ -68,19 +68,19 @@ if __name__ == '__main__':
   reader.stop_recording()
 
   msg = ' * recording has been stopped'
-  print colored(msg, attrs=['dark'])
+  print(colored(msg, attrs=['dark']))
 
 
 
   def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
-    return (filter(None, values) for values
-            in izip_longest(fillvalue=fillvalue, *args))
+    return (list(filter(None, values)) for values
+            in zip_longest(fillvalue=fillvalue, *args))
 
   data = reader.get_recorded_data()
 
   msg = ' * recorded %d samples'
-  print colored(msg, attrs=['dark']) % len(data[0])
+  print(colored(msg, attrs=['dark']) % len(data[0]))
 
   # reader.save_recorded('test.wav')
 
@@ -108,40 +108,41 @@ if __name__ == '__main__':
         FROM fingerprints
         WHERE upper(hash) IN (%s)
       """
-      query = query % ', '.join('?' * len(split_values))
+      list_leng = len(list(split_values))
+      query = query % ', '.join('?' * list_leng)
 
       x = db.executeAll(query, split_values)
       matches_found = len(x)
 
       if matches_found > 0:
         msg = '   ** found %d hash matches (step %d/%d)'
-        print colored(msg, 'green') % (
+        print(colored(msg, 'green') % (
           matches_found,
           len(split_values),
           len(values)
-        )
+        ))
       else:
         msg = '   ** not matches found (step %d/%d)'
-        print colored(msg, 'red') % (
+        print(colored(msg, 'red') % (
           len(split_values),
           len(values)
-        )
+        ))
 
       for hash, sid, offset in x:
         # (sid, db_offset - song_sampled_offset)
-        yield (sid, offset - mapper[hash])
+        yield (sid, mapper[hash])
 
   for channeln, channel in enumerate(data):
     # TODO: Remove prints or change them into optional logging.
     msg = '   fingerprinting channel %d/%d'
-    print colored(msg, attrs=['dark']) % (channeln+1, channel_amount)
+    print(colored(msg, attrs=['dark']) % (channeln+1, channel_amount))
 
     matches.extend(find_matches(channel))
 
     msg = '   finished channel %d/%d, got %d hashes'
-    print colored(msg, attrs=['dark']) % (
+    print(colored(msg, attrs=['dark']) % (
       channeln+1, channel_amount, len(matches)
-    )
+    ))
 
   def align_matches(matches):
     diff_counter = {}
@@ -181,11 +182,11 @@ if __name__ == '__main__':
 
   total_matches_found = len(matches)
 
-  print ''
+  print('')
 
   if total_matches_found > 0:
     msg = ' ** totally found %d hash matches'
-    print colored(msg, 'green') % total_matches_found
+    print(colored(msg, 'green') % total_matches_found)
 
     song = align_matches(matches)
 
@@ -193,11 +194,11 @@ if __name__ == '__main__':
     msg += '    offset: %d (%d secs)\n'
     msg += '    confidence: %d'
 
-    print colored(msg, 'green') % (
+    print(colored(msg, 'green') % (
       song['SONG_NAME'], song['SONG_ID'],
       song['OFFSET'], song['OFFSET_SECS'],
       song['CONFIDENCE']
-    )
+    ))
   else:
     msg = ' ** not matches found at all'
-    print colored(msg, 'red')
+    print(colored(msg, 'red'))

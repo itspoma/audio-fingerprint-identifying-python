@@ -1,6 +1,8 @@
 import hashlib
 import numpy as np
 import matplotlib.mlab as mlab
+# import matplotlib
+# matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 
 from termcolor import colored
@@ -95,7 +97,8 @@ def fingerprint(channel_samples, Fs=DEFAULT_FS,
     local_maxima = get_2D_peaks(arr2D, plot=plots, amp_min=amp_min)
 
     msg = '   local_maxima: %d of frequency & time pairs'
-    print colored(msg, attrs=['dark']) % len(local_maxima)
+    local_maxima = list(local_maxima)
+    print(colored(msg, attrs=['dark']) % len(local_maxima))
 
     # return hashes
     return generate_hashes(local_maxima, fan_value=fan_value)
@@ -164,5 +167,6 @@ def generate_hashes(peaks, fan_value=DEFAULT_FAN_VALUE):
 
           # check if delta is between min & max
           if t_delta >= MIN_HASH_TIME_DELTA and t_delta <= MAX_HASH_TIME_DELTA:
-            h = hashlib.sha1("%s|%s|%s" % (str(freq1), str(freq2), str(t_delta)))
+            full_code = "%s|%s|%s" %(str(freq1), str(freq2), str(t_delta))
+            h = hashlib.sha1(full_code.encode('utf-8'))
             yield (h.hexdigest()[0:FINGERPRINT_REDUCTION], t1)
