@@ -1,9 +1,14 @@
 import pyaudio
 import numpy
 import wave
-from reader import BaseReader
+from reader import Reader
+from reader._search import Search
+from reader._storage import Storage
+from reader._parser import Parser
+from reader._types import NameScheme
 
-class MicrophoneReader(BaseReader):
+
+class MicrophoneReader(Reader):
   default_chunksize = 8192
   default_format = pyaudio.paInt16
   default_channels = 2
@@ -12,7 +17,7 @@ class MicrophoneReader(BaseReader):
 
   # set default
   def __init__(self, a):
-    super(MicrophoneReader, self).__init__(a)
+    super(MicrophoneReader, self).__init__(a, Storage, Search, Parser, NameScheme)
     self.audio = pyaudio.PyAudio()
     self.stream = None
     self.data = []

@@ -1,5 +1,8 @@
 numpy>=1
+matplotlib
 termcolor
 pyaudio
 wave
 pydub
+reader
+scipy

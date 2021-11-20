@@ -1,11 +1,11 @@
-from reader import BaseReader
 import os
+import numpy as np
+from reader import Reader
 from pydub import AudioSegment
 from pydub.utils import audioop
-import numpy as np
 from hashlib import sha1
 
-class FileReader(BaseReader):
+class FileReader(Reader):
   def __init__(self, filename):
     # super(FileReader, self).__init__(a)
     self.filename = filename
@@ -37,7 +37,7 @@ class FileReader(BaseReader):
       data = np.fromstring(audiofile._data, np.int16)
 
       channels = []
-      for chn in xrange(audiofile.channels):
+      for chn in range(audiofile.channels):
         channels.append(data[chn::audiofile.channels])
 
       fs = audiofile.frame_rate
