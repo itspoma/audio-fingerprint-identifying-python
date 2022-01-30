@@ -6,5 +6,10 @@ services:
       context: .
       dockerfile: ./Dockerfile
 
-    working_dir: /app
-    image: python2.7:latest
+    working_dir:
+      /app
+
+    volumes:
+      - ./..:/app
+
+    image: audio-fingerprint:latest
