@@ -15,7 +15,7 @@ def printSummary():
     colored('%d song(s)', 'yellow'),        # songs
     colored('%d fingerprint(s)', 'yellow')  # fingerprints
   )
-  print msg % row
+  print (msg % row)
 
   return row[0] # total
 
@@ -36,7 +36,7 @@ def printSongs():
       colored('%s', 'white', attrs=['bold']),   # name
       colored('%d hashes', 'green')             # hashes
     )
-    print msg % row
+    print (msg % row)
 
 # find duplicates
 def printDuplicates():
@@ -54,7 +54,7 @@ def printDuplicates():
   """)
 
   msg = ' * duplications: %s' % colored('%d song(s)', 'yellow')
-  print msg % len(rows)
+  print (msg % len(rows))
 
   for row in rows:
     msg = '   ** %s %s: %s' % (
@@ -62,7 +62,7 @@ def printDuplicates():
       colored('%s', 'white', attrs=['bold']),
       colored('%d duplicate(s)', 'red')
     )
-    print msg % row
+    print (msg % row)
 
 # find colissions
 def printColissions():
@@ -82,19 +82,19 @@ def printColissions():
   if rows[0][0] is not None:
     val = rows[0]
 
-  print msg % val
+  print (msg % val)
 
 if __name__ == '__main__':
   db = SqliteDatabase()
-  print ''
+  print ('')
 
   x = printSummary()
   printSongs()
-  if x: print ''
+  if x: print ('')
 
   printDuplicates()
-  if x: print ''
+  if x: print ('')
 
   printColissions()
 
-  print '\ndone'
+  print ('\ndone')

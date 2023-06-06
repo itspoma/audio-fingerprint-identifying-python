@@ -8,7 +8,7 @@ if __name__ == '__main__':
   # songs table
 
   db.query("DROP TABLE IF EXISTS songs;")
-  print('removed db.songs');
+  print('removed db.songs')
 
   db.query("""
     CREATE TABLE songs (
@@ -17,13 +17,13 @@ if __name__ == '__main__':
       filehash  TEXT
     );
   """)
-  print('created db.songs');
+  print('created db.songs')
 
   #
   # fingerprints table
 
   db.query("DROP TABLE IF EXISTS fingerprints;")
-  print('removed db.fingerprints');
+  print('removed db.fingerprints')
 
   db.query("""
     CREATE TABLE `fingerprints` (
@@ -33,6 +33,6 @@ if __name__ == '__main__':
       `offset`  INTEGER
     );
   """)
-  print('created db.fingerprints');
+  print('created db.fingerprints')
 
-  print('done');
+  print('done')
